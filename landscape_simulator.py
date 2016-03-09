@@ -159,7 +159,7 @@ class GaussianLandscape(BasicLandscape):
         self.matrix *= max_height / self.matrix.max()  # scale landscape to match max_height.
 
     def add_gaussian(self, loc, sig, height):  # height can be negative
-        self.matrix += get_peak(self.size, loc, (sig,sig), height)
+        self.matrix += get_peak(self.size, loc, (sig, sig), height)
         # do not allow negative values
         self.matrix = self.matrix.clip(min=0)
 
@@ -205,7 +205,7 @@ class GaussianLandscape(BasicLandscape):
             if ind_z != -1:
                 if dynamic:
                     # Effects triggered above cutoff
-                    if float(ind_z)/self.matrix.max() > cutoff:
+                    if (float(ind_z)/self.matrix.max()) > cutoff:
                         self.reduced_novelty(self.individuals[i])
                         self.new_avenue()
 
@@ -263,7 +263,7 @@ class GaussianLandscape(BasicLandscape):
             
             count = 0
             for ind in candidates:
-                if self.matrix[ind[0],ind[1]] in zs:
+                if self.matrix[ind[0], ind[1]] in zs:
                     self.individuals = vstack((self.individuals, ind))
                     self.set_individual_vision(ind)
                     count += 1
@@ -286,7 +286,8 @@ class GaussianLandscape(BasicLandscape):
             
             # Use lotto on half the candidates
             non_visible_candidates = candidates[non_visible_candidate_indexes]
-            shuffle(non_visible_candidates)
+            if non_visible_candidates.size:  # For long-running simulations there may be none.
+                shuffle(non_visible_candidates)
             non_visible_candidates = non_visible_candidates[:len(individual_indexes_to_move)/2]
             for ind in non_visible_candidates:
                 self.set_individual_vision(ind)
