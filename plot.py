@@ -1,5 +1,5 @@
 from landscape_simulator import GaussianLandscape
-from numpy import arange
+from numpy import arange, mean, std
 from matplotlib import pyplot as plt
 
 
@@ -94,6 +94,72 @@ def plot_landscape(funding_options=('best', 'best_visible', 'lotto', 'triage', '
 
     else:
         raise ValueError('Must have at least one funding option')
+
+
+def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
+                   size=50,
+                   num_peaks = 25,
+                   max_height = 99,
+                   num_agents=20,
+                   num_steps=50,
+                   avg_countdown=5,
+                   num_runs=5,
+                   dynamic=True):
+    """Plot accumulated significance at simulation end as a dependant variable of some model parameter.
+
+    Shows performance at accumulating significance at the end of the simulation for each funding option,
+    as a function of variation in some model parameter (given as a list of values to explore).
+    """
+    model_params = {
+        'size': size,
+        'num_peaks': num_peaks,
+        'max_height': max_height,
+        'num_agents': num_agents,
+        'avg_countdown': avg_countdown
+    }
+
+    independent_var_name = None
+    for k in model_params:
+        if isinstance(model_params[k], list):
+            independent_var_name = k
+    if independent_var_name is None:
+        raise ValueError('At least one model parameter must be a list')
+
+    results = {f: ([], [], []) for f in funding_options}
+    for v in model_params[independent_var_name]:
+        model_param = model_params.copy()
+        model_param[independent_var_name] = v
+        all_methods = {f: [] for f in funding_options}
+        for run in range(num_runs):  # runs the simulation several times for averaging.
+            for funding in funding_options:
+                landscape = GaussianLandscape(
+                    model_param['size'],
+                    model_param['num_peaks'],
+                    model_param['max_height'])
+                landscape.init_individuals(
+                    model_param['num_agents'],
+                    avg_countdown=model_param['avg_countdown'])
+                for i in range(num_steps):
+                    if i % 10 == 0:
+                        print funding, i
+                    landscape.step(funding=funding, dynamic=dynamic)
+                all_methods[funding].append(landscape.accumulated_significance)
+        # Calculates average values and standard deviation.
+        for f in funding_options:
+            results[f][0].append(v)
+            results[f][1].append(mean(all_methods[f]))
+            results[f][2].append(std(all_methods[f]))
+
+    # Plot accumulated significance per variable value.
+    for f, res in results.iteritems():
+        plt.errorbar(res[0], res[1], label=f, yerr=res[2], fmt='o')
+    plt.xlim([0, int(max(model_params[independent_var_name])*1.1)])
+    plt.legend(loc='lower left')
+    plt.xlabel(independent_var_name.replace('_', ' ').title())
+    plt.ylabel('Accumulated Significance')
+    plt.show()
+
+    return
 
 if __name__ == '__main__':
     plot_landscape()

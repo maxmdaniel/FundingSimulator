@@ -31,7 +31,7 @@ def animate_landscape(landscape, steps, funding='best', individuals=False, dynam
                 texts.append(text)
         ims.append([im]+texts)
         landscape.step(funding=funding, dynamic=dynamic)
-    ani = animation.ArtistAnimation(fig, ims, interval=500, blit=False, repeat_delay=5000)
+    ani = animation.ArtistAnimation(fig, ims, interval=2000, blit=False, repeat_delay=False)
     raw_input('press enter')
     ani.save('animate_sz%d_st%d_dynamic_%s.mp4' % (landscape.size, steps, funding), writer=animation.FFMpegFileWriter())
     
@@ -41,7 +41,7 @@ def animate_landscape(landscape, steps, funding='best', individuals=False, dynam
 if __name__ == '__main__':
     size = 50
     avg_countdown = 5
-    steps = 200
+    steps = 50
     funding = 'lotto'
     dynamic = True
 
