@@ -1,6 +1,7 @@
 from landscape_simulator import GaussianLandscape
 from numpy import arange, mean, std
 from matplotlib import pyplot as plt
+import itertools
 
 
 def show_landscapes(landscapes, individuals=False):
@@ -98,9 +99,9 @@ def plot_landscape(funding_options=('best', 'best_visible', 'lotto', 'triage', '
 
 def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                    size=50,
-                   num_peaks = 25,
+                   num_peaks = None,
                    max_height = 99,
-                   num_agents=20,
+                   num_agents=None,
                    num_steps=50,
                    avg_countdown=5,
                    num_runs=5,
@@ -129,6 +130,12 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
     for v in model_params[independent_var_name]:
         model_param = model_params.copy()
         model_param[independent_var_name] = v
+        # Defaults that are relative to the landscape size
+        if model_param['num_peaks'] is None:
+            model_param['num_peaks'] = model_param['size']**2 / 100
+        if model_param['num_agents'] is None:
+            model_param['num_agents'] = model_param['size']**2 / 200
+
         all_methods = {f: [] for f in funding_options}
         for run in range(num_runs):  # runs the simulation several times for averaging.
             for funding in funding_options:
@@ -151,10 +158,11 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
             results[f][2].append(std(all_methods[f]))
 
     # Plot accumulated significance per variable value.
+    formats = itertools.cycle(['-o', '--s', '-.+', ':*'])
     for f, res in results.iteritems():
-        plt.errorbar(res[0], res[1], label=f, yerr=res[2], fmt='o')
+        plt.errorbar(res[0], res[1], label=f, yerr=res[2], fmt=formats.next())
     plt.xlim([0, int(max(model_params[independent_var_name])*1.1)])
-    plt.legend(loc='lower left')
+    plt.legend(loc='upper left')
     plt.xlabel(independent_var_name.replace('_', ' ').title())
     plt.ylabel('Accumulated Significance')
     plt.show()
