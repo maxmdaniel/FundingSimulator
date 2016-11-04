@@ -149,6 +149,7 @@ class GaussianLandscape(BasicLandscape):
         self.size = size
         self.vision = zeros((size, size))
         self.matrix = zeros((size, size))
+        self.max_height = max_height
         peaks = randint(1, self.size-1, size=(num_peaks, 3))  # randomly generate loc and sig for each peak.
         for peak in peaks:
             self.add_gaussian(
@@ -161,7 +162,7 @@ class GaussianLandscape(BasicLandscape):
     def add_gaussian(self, loc, sig, height):  # height can be negative
         self.matrix += get_peak(self.size, loc, (sig, sig), height)
         # do not allow negative values
-        self.matrix = self.matrix.clip(min=0)
+        self.matrix = self.matrix.clip(min=0, max=self.max_height)
 
     def winner_takes_all(self, ind):
         """A dynamic effect, sets significance to zero at individual location (once explored)."""

@@ -105,7 +105,8 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                    num_steps=50,
                    avg_countdown=5,
                    num_runs=5,
-                   dynamic=True):
+                   dynamic=True,
+                   cutoff=0.7):
     """Plot accumulated significance at simulation end as a dependant variable of some model parameter.
 
     Shows performance at accumulating significance at the end of the simulation for each funding option,
@@ -149,7 +150,7 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                 for i in range(num_steps):
                     if i % 10 == 0:
                         print funding, i
-                    landscape.step(funding=funding, dynamic=dynamic)
+                    landscape.step(funding=funding, dynamic=dynamic, cutoff=cutoff)
                 all_methods[funding].append(landscape.accumulated_significance)
         # Calculates average values and standard deviation.
         for f in funding_options:
