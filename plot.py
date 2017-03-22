@@ -104,6 +104,7 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                    num_agents=None,
                    num_steps=50,
                    avg_countdown=5,
+                   agent_vision=1,
                    num_runs=5,
                    dynamic=True,
                    cutoff=0.7):
@@ -117,7 +118,8 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
         'num_peaks': num_peaks,
         'max_height': max_height,
         'num_agents': num_agents,
-        'avg_countdown': avg_countdown
+        'avg_countdown': avg_countdown,
+        'agent_vision': agent_vision
     }
 
     independent_var_name = None
@@ -146,7 +148,8 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                     model_param['max_height'])
                 landscape.init_individuals(
                     model_param['num_agents'],
-                    avg_countdown=model_param['avg_countdown'])
+                    avg_countdown=model_param['avg_countdown'],
+                    agent_vision=model_param['agent_vision'])
                 for i in range(num_steps):
                     if i % 10 == 0:
                         print funding, i
@@ -160,15 +163,77 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
 
     # Plot accumulated significance per variable value.
     formats = itertools.cycle(['-o', '--s', '-.+', ':*'])
+    plt.figure()
+    ax = plt.subplot(111)
     for f, res in results.iteritems():
-        plt.errorbar(res[0], res[1], label=f, yerr=res[2], fmt=formats.next())
+        ax.errorbar(res[0], res[1], label=f, yerr=res[2], fmt=formats.next())
     plt.xlim([0, int(max(model_params[independent_var_name])*1.1)])
-    plt.legend(loc='upper left')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(bbox_to_anchor=(1, 0.5), loc='center left')
     plt.xlabel(independent_var_name.replace('_', ' ').title())
     plt.ylabel('Accumulated Significance')
-    plt.show()
 
-    return
+    return plt
+
+def plot_annual_gain(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
+                   size=50,
+                   num_peaks = None,
+                   max_height = 99,
+                   num_agents=None,
+                   num_steps=50,
+                   avg_countdown=5,
+                   agent_vision=1,
+                   num_runs=5,
+                   dynamic=True,
+                   cutoff=0.7):
+    """Plot annual epistemic gain for the different funding options for each simulation step."""
+
+    # Defaults that are relative to the landscape size
+    if num_peaks is None:
+        num_peaks = size**2 / 100
+    if num_agents is None:
+        num_agents = size**2 / 200
+
+    all_methods = {f: [] for f in funding_options}
+    for run in range(num_runs):  # runs the simulation several times for averaging.
+        for funding in funding_options:
+            landscape = GaussianLandscape(
+                size,
+                num_peaks,
+                max_height)
+            landscape.init_individuals(
+                num_agents,
+                avg_countdown=avg_countdown,
+                agent_vision=agent_vision)
+            all_methods[funding].append(0)
+            for i in range(num_steps):
+                if i % 10 == 0:
+                    print funding, i
+                landscape.step(funding=funding, dynamic=dynamic, cutoff=cutoff)
+                all_methods[funding] += landscape.step_significance_contributions
+
+    plt.figure()
+    ax = plt.subplot(111)
+    ax.boxplot(all_methods.values())
+    ax.set_xticklabels(all_methods.keys())
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+    plt.ylabel('Average Epistemic Gain')
+
+    return plt
 
 if __name__ == '__main__':
-    plot_landscape()
+    #plot_landscape()
+    res=plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys', 'triage'),
+                   size=300,
+                   num_peaks = None,
+                   max_height = 99,
+                   num_agents=None,
+                   num_steps=50,
+                   avg_countdown=5,
+                   agent_vision=[1,3,5,7,9],
+                   num_runs=5,
+                   dynamic=True,
+                   cutoff=1.1)
+    res.show()

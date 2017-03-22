@@ -34,16 +34,18 @@ class BasicLandscape(object):
         """Update the vision matrix to include the 3*3 area around the individual."""
         x = ind[0]
         y = ind[1]
-        for xi in range(-1,2):
-            for yi in range(-1,2):
+        for xi in range(-self.agent_vision, self.agent_vision+1):
+            for yi in range(-self.agent_vision, self.agent_vision+1):
                 if (x+xi < self.size) and (y+yi < self.size) and (x+xi >= 0) and (y+yi >= 0):
                     self.vision[[x+xi], [y+yi]] = 1
 
-    def init_individuals(self, num, avg_countdown=3):
+    def init_individuals(self, num, avg_countdown=3, agent_vision=1):
         """Initialise num individuals on the landscape and set their vision."""
         self.avg_countdown = avg_countdown
+        self.agent_vision = agent_vision
         self.individuals = self.generate_individuals(num)
         self.accumulated_significance = 0
+        self.step_significance_contributions = []
         for ind in self.individuals:
             self.set_individual_vision(ind)
     
@@ -93,6 +95,7 @@ class BasicLandscape(object):
         # contribute to accumulated significance based on current location
         ind_z = self.matrix[ind[0], ind[1]]
         self.accumulated_significance += ind_z
+        self.step_significance_contributions.append(ind_z)
         
         return ind, ind_z
         
@@ -196,6 +199,8 @@ class GaussianLandscape(BasicLandscape):
         5. Select individuals from the candidate pool based on the funding method.
         6. Add vision for selected individuals.
         """
+
+        self.step_significance_contributions = []
 
         individual_indexes_to_move = []
         for i in range(len(self.individuals)):
