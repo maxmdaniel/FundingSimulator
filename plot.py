@@ -167,7 +167,7 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
     ax = plt.subplot(111)
     for f, res in results.iteritems():
         ax.errorbar(res[0], res[1], label=f, yerr=res[2], fmt=formats.next())
-    plt.xlim([0, int(max(model_params[independent_var_name])*1.1)])
+    plt.xlim([0, int((max(model_params[independent_var_name])+1)*1.1)])
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend(bbox_to_anchor=(1, 0.5), loc='center left')
@@ -176,7 +176,8 @@ def plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
 
     return plt
 
-def plot_annual_gain(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
+
+def plot_gain(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
                    size=50,
                    num_peaks = None,
                    max_height = 99,
@@ -187,7 +188,7 @@ def plot_annual_gain(funding_options=('best', 'best_visible', 'lotto', 'oldboys'
                    num_runs=5,
                    dynamic=True,
                    cutoff=0.7):
-    """Plot annual epistemic gain for the different funding options for each simulation step."""
+    """Plot individual epistemic gain for the different funding options for each simulation step."""
 
     # Defaults that are relative to the landscape size
     if num_peaks is None:
@@ -219,21 +220,81 @@ def plot_annual_gain(funding_options=('best', 'best_visible', 'lotto', 'oldboys'
     ax.set_xticklabels(all_methods.keys())
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
-    plt.ylabel('Average Epistemic Gain')
+    plt.ylabel('Epistemic Gain')
 
     return plt
 
-if __name__ == '__main__':
-    #plot_landscape()
-    res=plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys', 'triage'),
-                   size=300,
+
+def plot_renewal(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
+                   size=50,
                    num_peaks = None,
                    max_height = 99,
                    num_agents=None,
                    num_steps=50,
                    avg_countdown=5,
-                   agent_vision=[1,3,5,7,9],
+                   agent_vision=1,
                    num_runs=5,
                    dynamic=True,
-                   cutoff=1.1)
+                   cutoff=0.7):
+    """Plot renewal likelihood for the different funding options for each simulation step."""
+
+    # Defaults that are relative to the landscape size
+    if num_peaks is None:
+        num_peaks = size**2 / 100
+    if num_agents is None:
+        num_agents = size**2 / 200
+
+    all_methods = {f: [] for f in funding_options}
+    for run in range(num_runs):  # runs the simulation several times for averaging.
+        for funding in funding_options:
+            landscape = GaussianLandscape(
+                size,
+                num_peaks,
+                max_height)
+            landscape.init_individuals(
+                num_agents,
+                avg_countdown=avg_countdown,
+                agent_vision=agent_vision)
+            for i in range(num_steps):
+                if i % 10 == 0:
+                    print funding, i
+                landscape.step(funding=funding, dynamic=dynamic, cutoff=cutoff)
+                if landscape.step_renewal is not None:
+                    all_methods[funding].append(landscape.step_renewal)
+
+    plt.figure()
+    ax = plt.subplot(111)
+    ax.boxplot(all_methods.values())
+    ax.set_xticklabels(all_methods.keys())
+    ax.get_xaxis().tick_bottom()
+    ax.get_yaxis().tick_left()
+    plt.ylabel('Renewal likelihood')
+
+    return plt
+
+
+if __name__ == '__main__':
+    #plot_landscape()
+    # res=plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys', 'triage'),
+    #                size=150,
+    #                num_peaks = None,
+    #                max_height = 99,
+    #                num_agents=None,
+    #                num_steps=50,
+    #                avg_countdown=5,
+    #                agent_vision=[1,2,3,4,5],
+    #                num_runs=5,
+    #                dynamic=True,
+    #                cutoff=0.7)
+    res=plot_renewal(funding_options=('best', 'best_visible', 'lotto', 'oldboys', 'triage'),
+                   size=150,
+                   num_peaks = None,
+                   max_height = 99,
+                   num_agents=None,
+                   num_steps=50,
+                   avg_countdown=5,
+                   agent_vision=2,
+                   num_runs=5,
+                   dynamic=True,
+                   cutoff=0.7)
     res.show()

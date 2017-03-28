@@ -36,7 +36,8 @@ class BasicLandscape(object):
         y = ind[1]
         for xi in range(-self.agent_vision, self.agent_vision+1):
             for yi in range(-self.agent_vision, self.agent_vision+1):
-                if (x+xi < self.size) and (y+yi < self.size) and (x+xi >= 0) and (y+yi >= 0):
+                if ((x+xi < self.size) and (y+yi < self.size) and (x+xi >= 0) and (y+yi >= 0) and
+                        (xi**2 + yi**2 <= (self.agent_vision + 0.5)**2)):
                     self.vision[[x+xi], [y+yi]] = 1
 
     def init_individuals(self, num, avg_countdown=3, agent_vision=1):
@@ -226,6 +227,7 @@ class GaussianLandscape(BasicLandscape):
         
         # --- Funding stage ---
         if not individual_indexes_to_move:  # if there are no candidates there is no free cash
+            self.step_renewal = None
             return
         
         num_total_individuals = len(self.individuals)
@@ -320,6 +322,10 @@ class GaussianLandscape(BasicLandscape):
             self.individuals = vstack((self.individuals, array(old_candidates)))
         else:
             raise KeyError('Unknown funding option %s' % str(funding))
+
+        self.step_renewal = len([x for x in set(tuple(x) for x in old_candidates) &
+                                 set(tuple(x) for x in self.individuals)])
+        self.step_renewal /= float(len(individual_indexes_to_move))
 
         # All selection methods keep the active number of individuals fixed.
         assert(len(self.individuals) == num_total_individuals)
