@@ -268,6 +268,7 @@ def plot_renewal(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
     ax.set_xticklabels(all_methods.keys())
     ax.get_xaxis().tick_bottom()
     ax.get_yaxis().tick_left()
+    plt.ylim([0, 1.1])
     plt.ylabel('Renewal likelihood')
 
     return plt
@@ -276,13 +277,13 @@ def plot_renewal(funding_options=('best', 'best_visible', 'lotto', 'oldboys'),
 if __name__ == '__main__':
     #plot_landscape()
     # res=plot_variation(funding_options=('best', 'best_visible', 'lotto', 'oldboys', 'triage'),
-    #                size=150,
+    #                size=[25,50,100,150,200,250,300],
     #                num_peaks = None,
     #                max_height = 99,
     #                num_agents=None,
     #                num_steps=50,
     #                avg_countdown=5,
-    #                agent_vision=[1,2,3,4,5],
+    #                agent_vision=2,
     #                num_runs=5,
     #                dynamic=True,
     #                cutoff=0.7)

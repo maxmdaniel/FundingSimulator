@@ -323,9 +323,17 @@ class GaussianLandscape(BasicLandscape):
         else:
             raise KeyError('Unknown funding option %s' % str(funding))
 
-        self.step_renewal = len([x for x in set(tuple(x) for x in old_candidates) &
-                                 set(tuple(x) for x in self.individuals)])
+        self.step_renewal = 0
+        old_candidates_tuples = [tuple(x) for x in old_candidates]
+        selected_individuals_tuples = [tuple(x) for x in self.individuals]
+        for old_candidate_tuple in old_candidates_tuples:
+            if old_candidate_tuple in selected_individuals_tuples:
+                self.step_renewal += 1
         self.step_renewal /= float(len(individual_indexes_to_move))
+
+        # 'oldboys' should have 100% renewal
+        if funding == 'oldboys':
+            assert(self.step_renewal == 1.0)
 
         # All selection methods keep the active number of individuals fixed.
         assert(len(self.individuals) == num_total_individuals)
